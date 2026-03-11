@@ -1,84 +1,11 @@
 import fastify from 'fastify';
-import { randomUUID } from 'node:crypto';
+import bookController from './routes/booksController.js';
 
 const app = fastify()
 
-interface Livros {
-    id: string 
-    nome: string 
-    autor: string
-    preco: number
-    quantidade: number
-}
+app.register(bookController)
 
-// array pra armazenar os livros simulando um banco de dados 
-const livros: Livros[] = []
-
-// rota para criar um livro
-app.post('/livros', (request, reply) => {
-    const { nome, autor, preco, quantidade } = request.body as Livros // cria o body da requisição, as informações que o cliente vai enviar para criar um livro
-
-    // caso alguma informaçao esteja faltando, retorna um erro 400 - Bad Request
-    if (!nome || !autor || !preco || !quantidade ){ 
-        reply.status(400).send({ error: 'Todos os campos são obrigatórios' })
-        return
-    }
-
-    // cria o livro com um id unico e aleatoria e adiciona ao array de livros
-    const livro: Livros = {
-        id: randomUUID(),
-        nome,
-        autor,
-        preco,
-        quantidade
-    }
-    livros.push(livro) 
-
-    return reply.status(201).send({message: 'Livro criado com sucesso'})
-})
-
-// rota para buscar todos os livros 
-app.get('/livros', () => {
-    return livros
-})
-
-// rota pra atualizar um livro
-app.put('/livros/:id', (request, reply) => {
-    const { id } = request.params as Livros  // pega o id do livro que vai ser atualizado a partir dos parametros de rota
-    const { nome, autor, preco, quantidade } = request.body as Livros 
-    const livroIndex = livros.findIndex(livro => livro.id === id) // procura o livro no array de livros pelo id e retorna o indice do livro encontrado
-
-    // se o livro nao for encontrado, retorna um erro 404 - Not Found
-    if (livroIndex === -1) {
-        reply.status(404).send({ error: 'Livro não encontrado' })
-        return
-    }
-
-    if (!nome || !autor || !preco || !quantidade ){
-        reply.status(400).send({ error: 'Todos os campos são obrigatórios' })
-        return
-    }
-
-    // atualiza o livro no array de livros com as novas informações
-    livros[livroIndex] = { id, nome, autor, preco, quantidade }
-
-    return reply.status(200).send({message: 'Livro atualizado com sucesso'})
-})
-
-// rota para deletar um livro
-app.delete('/livros/:id', (request, reply) => {
-    const { id } = request.params as Livros
-    const index = livros.findIndex(livro => livro.id === id)
-
-    if (index === -1) {
-        reply.status(404).send({ error: 'Livro não encontrado' })
-        return
-    }
-
-    livros.splice(index, 1)
-    return reply.status(200).send({message: 'Livro deletado com sucesso'})
-})
-app.listen({ port: 3333}).then(() => {
+app.listen({ port: 3000}).then(() => {
     console.log('HTTP server running!')
 })
 
